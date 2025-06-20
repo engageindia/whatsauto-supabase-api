@@ -28,7 +28,7 @@ exports.handler = async function (event, context) {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply: `✅ Got your message: "${msg}" from ${phone}` })
+      body: JSON.stringify({ "reply" : "✅ Got your message: "${msg}" from ${phone}" })
     };
 
   } catch (error) {
