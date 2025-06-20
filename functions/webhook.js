@@ -14,7 +14,15 @@ exports.handler = async function(event, context) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const body = JSON.parse(event.body);
+    let body = {};
+try {
+  body = JSON.parse(event.body);
+} catch (e) {
+  return {
+    statusCode: 400,
+    body: `❌ Invalid JSON input`
+  };
+}
     const { sender, message } = body;
 
     return {
