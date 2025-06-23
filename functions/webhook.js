@@ -1,33 +1,30 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(process.env.SUPABASE_DATABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
 exports.handler = async function(event) {
-  const parseUrlEncoded = (str) => {
-    return str.split('&').reduce((acc, pair) => {
-      const [rawK = '', rawV = ''] = pair.split('=');
-      const k = decodeURIComponent(rawK);
-      const v = decodeURIComponent((rawV || '').replace(/\+/g, ' '));
-      acc[k] = v;
-      return acc;
-    }, {});
-  };
+  const parseForm = str => str.split('&').reduce((o,p)=>([k,v]=p.split('='),o[decodeURIComponent(k)]=decodeURIComponent((v||'').replace(/\+/g,' ')),o), {});
 
-  const makeReply = (msg) => ({
-    statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reply: msg }),
-  });
+  const form = parseForm(event.body || '');
+  const msg = (form.message || '').toLowerCase();
+  const sender = form.sender || form.phone;
 
-  if (event.httpMethod !== 'POST') {
-    return makeReply('❌ Use POST request.');
+  // Step 1: Intent detection for availability
+  if (/available|vacant|free/.test(msg)) {
+    await supabase; // ensure client ready
+    return { statusCode:200, headers:{'Content-Type':'application/json'}, body: JSON.stringify({ reply: '👋 Sure! Please send the farm name and date (e.g. Bliss 28 June)' }) };
   }
 
-  const bodyStr = event.body || '';
-  const form = parseUrlEncoded(bodyStr);
+  // Step 2: User replies with Farm & Date
+  const parts = msg.split(' ');
+  if (parts.length >= 3) {
+    const farmName = parts[0];
+    const dateStr = parts.slice(1).join(' ');
+    // Convert and validate date ...
+    // Query Supabase for availability ...
+    // Reply with “available” + price or “booked”
+  }
 
-  const msg = form.message || '';
-  const sender = form.sender || form.phone || 'someone';
-  const contact = form.phone;
-
-  return makeReply(`📨 Echo: "${msg}" from ${sender}`);
+  // Fallback
+  return { statusCode:200, headers:{'Content-Type':'application/json'}, body: JSON.stringify({ reply: 'Sorry, I didn’t catch that. Ask “Is [FarmName] available on [Date]?”' }) };
 };
