@@ -28,7 +28,7 @@ exports.handler = async function(event) {
     const { data: farms } = await supabase
       .from('Properties')
       .select('*')
-      .ilike('name', `%${farmName}%`);
+      .ilike('farmName', `%${farmName}%`);
 
     if (!farms || farms.length === 0) {
       return reply(`❌ No farm found with name "${farmName}"`);
