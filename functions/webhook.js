@@ -27,6 +27,7 @@ exports.handler = async function(event) {
 
   const msg = form.message || '';
   const sender = form.sender || form.phone || 'someone';
+  const contact = form.phone;
 
   return makeReply(`📨 Echo: "${msg}" from ${sender}`);
 };
