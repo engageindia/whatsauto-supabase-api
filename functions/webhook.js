@@ -1,36 +1,32 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(process.env.SUPABASE_DATABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-
 exports.handler = async function(event) {
   const parseUrlEncoded = (str) => {
-    return str
-      .split('&')
-      .map(pair => pair.split('='))
-      .reduce((acc, [k, v]) => {
-        acc[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' '));
-        return acc;
-      }, {});
+    return str.split('&').reduce((acc, pair) => {
+      const [rawK = '', rawV = ''] = pair.split('=');
+      const k = decodeURIComponent(rawK);
+      const v = decodeURIComponent((rawV || '').replace(/\+/g, ' '));
+      acc[k] = v;
+      return acc;
+    }, {});
   };
 
-  // Ensure correct response structure
   const makeReply = (msg) => ({
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reply: msg })
+    body: JSON.stringify({ reply: msg }),
   });
 
-  // Only POST allowed
   if (event.httpMethod !== 'POST') {
-    return makeReply('❌ Method not allowed — please use POST.');
+    return makeReply('❌ Use POST request.');
   }
 
-  // Parse form data (WhatsAuto default)
-  const form = parseUrlEncoded(event.body || '');
+  const bodyStr = event.body || '';
+  const form = parseUrlEncoded(bodyStr);
 
-  const msg = form.message || 'no message';
-  const sender = form.sender || 'unknown';
+  const msg = form.message || '';
+  const sender = form.sender || form.phone || 'someone';
 
-  // ✅ Test echo response
   return makeReply(`📨 Echo: "${msg}" from ${sender}`);
 };
