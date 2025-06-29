@@ -1,8 +1,9 @@
-const { createClient } = require('@supabase/supabase-js');
+// 📦 WhatsAuto Booking Automation Full Logic with Supabase Integration
+// 🌐 Uses application/x-www-form-urlencoded parsing (with improved error handling)
 
+const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_DATABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-// In-memory session tracking (can be replaced with Redis or Supabase table)
 const sessions = {};
 
 exports.handler = async function(event) {
@@ -10,8 +11,12 @@ exports.handler = async function(event) {
     console.log("[EVENT] Incoming:", event);
 
     const parseForm = str => str.split('&').reduce((o, p) => {
-      const [k, v] = (p || '').split('=');
-      o[decodeURIComponent(k)] = decodeURIComponent((v || '').replace(/\+/g, ' '));
+      const [k = '', v = ''] = (p || '').split('=');
+      try {
+        o[decodeURIComponent(k)] = decodeURIComponent((v || '').replace(/\+/g, ' '));
+      } catch (e) {
+        console.error('[FORM PARSE ERROR]', e, k, v);
+      }
       return o;
     }, {});
 
